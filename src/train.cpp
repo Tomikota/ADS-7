@@ -1,33 +1,49 @@
-// Copyright 2021 NNTU-CS
+// Copyright 2025
+
 #include "train.h"
 
-Train::Train() : countOp(0), first(nullptr) {}
+Train::Train() {
+    first = nullptr;
+    countOp = 0;
+}
 
 Train::~Train() {
-    if (!first) return;
-    first->prev->next = nullptr;
-    Car *curr = first;
-    while (curr != nullptr) {
-        Car *temp = curr->next;
-        delete curr;
-        curr = temp;
+    if (first == nullptr) {
+        return;
     }
-    first = nullptr;
+
+    Car* current = first->next;
+
+    while (current != first) {
+        Car* temp = current;
+        current = current->next;
+        delete temp;
+    }
+
+    delete first;
 }
 
 void Train::addCar(bool light) {
-    Car *newCar = new Car{light, nullptr, nullptr};
-    if (!first) {
+    Car* newCar = new Car;
+
+    newCar->light = light;
+
+    if (first == nullptr) {
         first = newCar;
+
         first->next = first;
         first->prev = first;
-    } else {
-        Car *last = first->prev;
-        newCar->next = first;
-        newCar->prev = last;
-        last->next = newCar;
-        first->prev = newCar;
+
+        return;
     }
+
+    Car* last = first->prev;
+
+    newCar->next = first;
+    newCar->prev = last;
+
+    last->next = newCar;
+    first->prev = newCar;
 }
 
 int Train::getOpCount() {
@@ -35,34 +51,37 @@ int Train::getOpCount() {
 }
 
 int Train::getLength() {
-    if (!first) return 0;
+    if (first == nullptr) {
+        return 0;
+    }
+
     countOp = 0;
-    
-    first->light = true;
-    
-    Car *curr = first;
-    int i = 1;
+
+    Car* current = first;
+
+    current->light = true;
+
     while (true) {
-        curr = curr->next;
-        countOp++;
-        
-        if (curr->light) {
-            curr->light = false;
-            
-            for (int step = 0; step < i; ++step) {
-                curr = curr->prev;
-                countOp++;
-            }
-            
-            if (!first->light) {
-                return i;
-            }
-            
-            for (int step = 0; step < i; ++step) {
-                curr = curr->next;
-                countOp++;
-            }
+        int distance = 0;
+
+        do {
+            current = current->next;
+
+            countOp++;
+
+            distance++;
+        } while (!current->light);
+
+        current->light = false;
+
+        for (int i = 0; i < distance; i++) {
+            current = current->prev;
+
+            countOp++;
         }
-        i++;
+
+        if (!current->light) {
+            return distance;
+        }
     }
 }
